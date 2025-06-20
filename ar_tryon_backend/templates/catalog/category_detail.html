@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - AR Try-On{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Category Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'catalog:catalog_home' %}">Catalog</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'catalog:category_list' %}">Categories</a></li>
+                    <li class="breadcrumb-item active">{{ category.name }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex align-items-center mb-3">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
+                {% endif %}
+                <div>
+                    <h1>{{ category.name }}</h1>
+                    {% if category.description %}
+                    <p class="text-muted mb-0">{{ category.description }}</p>
+                    {% endif %}
+                    <small class="text-muted">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }} found</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+            <div class="card h-100">
+                {% with product.images.all|first as main_image %}
+                {% if main_image %}
+                <img src="{{ main_image.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                    <span class="text-muted">No Image</span>
+                </div>
+                {% endif %}
+                {% endwith %}
+                
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">{{ product.brand.name }}</h6>
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.short_description|truncatewords:8 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="price">
+                            {% if product.is_on_sale %}
+                            <span class="text-danger fw-bold">${{ product.sale_price }}</span>
+                            <small class="text-muted text-decoration-line-through">${{ product.price }}</small>
+                            <span class="badge bg-danger ms-1">{{ product.discount_percentage }}% OFF</span>
+                            {% else %}
+                            <span class="fw-bold">${{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-1 mb-2">
+                        {% if product.is_try_on_enabled %}
+                        <span class="badge bg-success">Try-On Ready</span>
+                        {% endif %}
+                        {% if product.is_featured %}
+                        <span class="badge bg-warning">Featured</span>
+                        {% endif %}
+                        <span class="badge bg-info">{{ product.get_gender_display }}</span>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'catalog:product_detail' product.slug %}" class="btn btn-primary btn-sm">View Details</a>
+                        {% if product.is_try_on_enabled %}
+                        <a href="#" class="btn btn-outline-success btn-sm">Try On</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <h4>No products found in this category</h4>
+                <p class="text-muted">This category doesn't have any products yet.</p>
+                <a href="{% url 'catalog:catalog_home' %}" class="btn btn-primary">Browse All Categories</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Category pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Back to Categories -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'catalog:category_list' %}" class="btn btn-outline-secondary">← Back to All Categories</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
