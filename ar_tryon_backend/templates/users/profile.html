@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+
+{% block title %}Profile - AR Try-On{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- Profile Card -->
+        <div class="card">
+            <div class="card-body text-center">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="Profile Picture" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
+                        <i class="text-white" style="font-size: 60px;">👤</i>
+                    </div>
+                {% endif %}
+                
+                <h4>{{ user.get_full_name|default:user.username }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                
+                {% if user.profile.gender %}
+                    <p><strong>Gender:</strong> {{ user.profile.get_gender_display }}</p>
+                {% endif %}
+                
+                {% if user.profile.preferred_size %}
+                    <p><strong>Preferred Size:</strong> {{ user.profile.get_preferred_size_display }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Edit Profile Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Edit Profile</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Basic Information</h6>
+                            
+                            <div class="mb-3">
+                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ user_form.first_name|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ user_form.last_name|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ user_form.email|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ profile_form.phone_number|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ profile_form.date_of_birth|add_class:"form-control" }}
+                            </div>
+                        </div>
+                        
+                        <!-- Profile & Preferences -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Profile & Preferences</h6>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.avatar.id_for_label }}" class="form-label">Profile Picture</label>
+                                {{ profile_form.avatar|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.gender.id_for_label }}" class="form-label">Gender</label>
+                                {{ profile_form.gender|add_class:"form-select" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.preferred_size.id_for_label }}" class="form-label">Preferred Size</label>
+                                {{ profile_form.preferred_size|add_class:"form-select" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.height.id_for_label }}" class="form-label">Height (cm)</label>
+                                {{ profile_form.height|add_class:"form-control" }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ profile_form.weight.id_for_label }}" class="form-label">Weight (kg)</label>
+                                {{ profile_form.weight|add_class:"form-control" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

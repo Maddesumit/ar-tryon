@@ -67,7 +67,7 @@ ROOT_URLCONF = "ar_tryon_backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],  # Add our templates directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -168,3 +168,8 @@ CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=boo
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Login/Logout redirects
+LOGIN_URL = '/api/users/login/'
+LOGIN_REDIRECT_URL = '/api/users/profile/'
+LOGOUT_REDIRECT_URL = '/api/users/login/'
