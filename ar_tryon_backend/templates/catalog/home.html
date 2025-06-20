@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Catalog - AR Try-On{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="bg-primary text-white p-5 rounded text-center">
+                <h1 class="display-4">Virtual Try-On Catalog</h1>
+                <p class="lead">Discover and try on the latest fashion with our AR technology</p>
+                <div class="row text-center mt-4">
+                    <div class="col-md-3">
+                        <h3>{{ stats.total_products }}</h3>
+                        <p>Products</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3>{{ stats.total_categories }}</h3>
+                        <p>Categories</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3>{{ stats.total_brands }}</h3>
+                        <p>Brands</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3>{{ stats.featured_products }}</h3>
+                        <p>Featured</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Shop by Category</h2>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100">
+                        {% if category.image %}
+                        <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span class="text-muted">{{ category.name }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text">{{ category.description|truncatewords:15 }}</p>
+                            <p class="text-muted small">{{ category.product_count }} products</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'catalog:category_detail' category.slug %}" class="btn btn-outline-primary btn-sm">Browse {{ category.name }}</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-muted">No categories available yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Products Section -->
+    {% if featured_products %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Featured Products</h2>
+            <div class="row">
+                {% for product in featured_products %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100">
+                        {% with product.images.all|first as main_image %}
+                        {% if main_image %}
+                        <img src="{{ main_image.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <span class="text-muted">No Image</span>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">{{ product.brand.name }}</h6>
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.short_description|truncatewords:10 }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="price">
+                                    {% if product.is_on_sale %}
+                                    <span class="text-danger fw-bold">${{ product.sale_price }}</span>
+                                    <small class="text-muted text-decoration-line-through">${{ product.price }}</small>
+                                    {% else %}
+                                    <span class="fw-bold">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.is_try_on_enabled %}
+                                <span class="badge bg-success">Try-On Ready</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'catalog:product_detail' product.slug %}" class="btn btn-primary btn-sm">View Details</a>
+                                {% if product.is_try_on_enabled %}
+                                <a href="#" class="btn btn-outline-success btn-sm">Try On</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center">
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">View All Products</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4>Ready to Start Shopping?</h4>
+                    <p class="text-muted">Browse our collection or try our virtual try-on technology</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Browse All Products</a>
+                        <a href="{% url 'catalog:category_list' %}" class="btn btn-outline-primary">View Categories</a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'tryon:tryon_home' %}" class="btn btn-success">Try On Now</a>
+                        {% else %}
+                        <a href="{% url 'users:register' %}" class="btn btn-success">Sign Up to Try On</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

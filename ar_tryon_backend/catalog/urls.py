@@ -9,11 +9,13 @@ from . import views
 app_name = 'catalog'
 
 urlpatterns = [
-    # Basic hello world view to test the app is working
+    # Main catalog pages
     path('', views.catalog_home, name='catalog_home'),
-    
-    # Product URLs (we'll add these in Phase 3)
     path('products/', views.product_list, name='product_list'),
-    path('products/<int:product_id>/', views.product_detail, name='product_detail'),
     path('categories/', views.category_list, name='category_list'),
+    
+    # Detail pages
+    path('product/<slug:slug>/', views.product_detail, name='product_detail'),
+    path('category/<slug:slug>/', views.category_detail, name='category_detail'),
+    path('brand/<slug:slug>/', views.brand_detail, name='brand_detail'),
 ]
