@@ -1,0 +1,18 @@
+# Core Django packages
+Django==4.2.7
+djangorestframework==3.14.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Environment management
+python-decouple==3.8
+
+# CORS handling for frontend-backend communication
+django-cors-headers==4.3.1
+
+# Image processing
+Pillow==10.1.0
+
+# For development
+django-extensions==3.2.3
