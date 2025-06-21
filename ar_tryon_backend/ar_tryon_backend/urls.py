@@ -36,10 +36,12 @@ def api_home(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("dashboard/", include("dashboard.urls")),  # Custom admin dashboard
     path("api/", api_home, name="api_home"),  # API home page
     path("api/users/", include("users.urls")),  # User authentication & profiles
-    path("api/catalog/", include("catalog.urls")),  # Product catalog
+    path("api/catalog/", include("catalog.api_urls", namespace="api_catalog")),  # Product catalog API
     path("api/tryon/", include("tryon.urls")),  # Try-on functionality
+    path("", include("catalog.urls", namespace="frontend_catalog")),  # Frontend catalog views
 ]
 
 # Serve media files in development

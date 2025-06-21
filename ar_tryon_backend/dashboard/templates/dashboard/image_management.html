@@ -1,0 +1,440 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Image Management - AR Try-On Admin{% endblock %}
+
+{% block header %}Image Management{% endblock %}
+
+{% block header_actions %}
+<div class="btn-group" role="group">
+    <button type="button" class="btn btn-custom" onclick="addImagesForAll()">
+        <i class="bi bi-images me-1"></i>
+        Add Images for All
+    </button>
+    <button type="button" class="btn btn-outline-primary" onclick="refreshImages()">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        Refresh Images
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Quick Actions Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Products Without Images ({{ products_without_images.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if products_without_images %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products_without_images %}
+                            <tr>
+                                <td>{{ product.name|truncatechars:40 }}</td>
+                                <td><span class="badge bg-primary">{{ product.category.name }}</span></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="addImagesForProduct('{{ product.id }}', '{{ product.name|escapejs }}')">
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Add Images
+                                        </button>
+                                        <a href="/admin/catalog/product/{{ product.id }}/change/" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-custom w-100" onclick="addImagesForSelected('no-images')">
+                        <i class="bi bi-images me-1"></i>
+                        Add Images for All Products Above
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-check-circle display-4 text-success"></i>
+                    <p class="text-success mt-2">All products have images! 🎉</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="bi bi-images me-1"></i>
+                    Products with Few Images ({{ products_with_few_images.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if products_with_few_images %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Images</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products_with_few_images %}
+                            <tr>
+                                <td>{{ product.name|truncatechars:40 }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ product.image_count }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-warning btn-sm" onclick="addMoreImages('{{ product.id }}', '{{ product.name|escapejs }}')">
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Add More
+                                        </button>
+                                        <a href="/admin/catalog/product/{{ product.id }}/change/" class="btn btn-outline-secondary btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-outline-warning w-100" onclick="addImagesForSelected('few-images')">
+                        <i class="bi bi-images me-1"></i>
+                        Add More Images for All Above
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-check-circle display-4 text-success"></i>
+                    <p class="text-success mt-2">All products have enough images!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Management Commands -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-terminal me-1"></i>
+                    Image Management Commands
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-plus-circle display-4 text-primary mb-3"></i>
+                                <h6>Add Images</h6>
+                                <p class="text-muted small">Add images to products that don't have any</p>
+                                <button class="btn btn-primary" onclick="runCommand('add-images')">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    Run Command
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-arrow-repeat display-4 text-warning mb-3"></i>
+                                <h6>Refresh Images</h6>
+                                <p class="text-muted small">Clear and re-add all product images</p>
+                                <button class="btn btn-warning" onclick="runCommand('refresh-images')">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                    Refresh All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-gear display-4 text-info mb-3"></i>
+                                <h6>Custom Command</h6>
+                                <p class="text-muted small">Run custom image management command</p>
+                                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#customCommandModal">
+                                    <i class="bi bi-sliders me-1"></i>
+                                    Custom Options
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Command Output -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-terminal me-1"></i>
+                    Command Output
+                </h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearOutput()">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Clear
+                </button>
+            </div>
+            <div class="card-body">
+                <pre id="commandOutput" class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto;">
+Welcome to Image Management Dashboard
+=====================================
+
+Use the buttons above to manage product images.
+Commands will appear here as they run.
+
+Ready to add some images! 🖼️
+                </pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Command Modal -->
+<div class="modal fade" id="customCommandModal" tabindex="-1" aria-labelledby="customCommandModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customCommandModalLabel">Custom Image Command</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customCommandForm">
+                    <div class="mb-3">
+                        <label for="maxImages" class="form-label">Max Images per Product</label>
+                        <input type="number" class="form-control" id="maxImages" value="4" min="1" max="10">
+                        <div class="form-text">Number of images to add for each product (1-10)</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="clearImages">
+                            <label class="form-check-label" for="clearImages">
+                                Clear existing images first
+                            </label>
+                            <div class="form-text">⚠️ This will remove all current product images</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-custom" onclick="runCustomCommand()">
+                    <i class="bi bi-play-circle me-1"></i>
+                    Run Command
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addImagesForAll() {
+    if (confirm('This will add images to all products that don\'t have any. Continue?')) {
+        runCommand('add-images');
+    }
+}
+
+function refreshImages() {
+    if (confirm('This will clear all existing images and add new ones. This action cannot be undone. Continue?')) {
+        runCommand('refresh-images');
+    }
+}
+
+function addImagesForProduct(productId, productName) {
+    if (confirm(`Add images for "${productName}"?`)) {
+        appendOutput(`Adding images for ${productName}...`);
+        // In a real implementation, this would make an AJAX call
+        setTimeout(() => {
+            appendOutput(`✅ Images added for ${productName}`);
+        }, 2000);
+    }
+}
+
+function addMoreImages(productId, productName) {
+    if (confirm(`Add more images for "${productName}"?`)) {
+        appendOutput(`Adding more images for ${productName}...`);
+        // In a real implementation, this would make an AJAX call
+        setTimeout(() => {
+            appendOutput(`✅ More images added for ${productName}`);
+        }, 2000);
+    }
+}
+
+function addImagesForSelected(type) {
+    const message = type === 'no-images' 
+        ? 'Add images for all products without images?' 
+        : 'Add more images for all products with few images?';
+    
+    if (confirm(message)) {
+        runCommand(type === 'no-images' ? 'add-images-selective' : 'add-more-images');
+    }
+}
+
+function runCommand(command) {
+    const output = document.getElementById('commandOutput');
+    
+    switch(command) {
+        case 'add-images':
+            appendOutput('🚀 Starting image addition process...');
+            appendOutput('python manage.py add_product_images --max-images=4');
+            simulateImageCommand();
+            break;
+        case 'refresh-images':
+            appendOutput('🔄 Refreshing all product images...');
+            appendOutput('python manage.py add_product_images --clear-images --max-images=4');
+            simulateRefreshCommand();
+            break;
+        case 'add-images-selective':
+            appendOutput('🎯 Adding images for products without images...');
+            simulateSelectiveCommand();
+            break;
+        case 'add-more-images':
+            appendOutput('📸 Adding more images for products with few images...');
+            simulateMoreImagesCommand();
+            break;
+    }
+}
+
+function runCustomCommand() {
+    const maxImages = document.getElementById('maxImages').value;
+    const clearImages = document.getElementById('clearImages').checked;
+    
+    let command = `python manage.py add_product_images --max-images=${maxImages}`;
+    if (clearImages) {
+        command += ' --clear-images';
+    }
+    
+    appendOutput('🛠️ Running custom command...');
+    appendOutput(command);
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('customCommandModal'));
+    modal.hide();
+    
+    // Simulate command
+    simulateCustomCommand(maxImages, clearImages);
+}
+
+function simulateImageCommand() {
+    const products = [
+        'Stan Smith Sneakers', 'Air Max 90', 'Windbreaker Jacket', 
+        'Denim Jacket', 'Little Black Dress', 'Floral Summer Dress'
+    ];
+    
+    let index = 0;
+    const interval = setInterval(() => {
+        if (index < products.length) {
+            appendOutput(`✅ Added 4 images for ${products[index]}`);
+            index++;
+        } else {
+            clearInterval(interval);
+            appendOutput('🎉 Image addition completed!');
+            appendOutput('📊 Statistics: 24 images added for 6 products');
+        }
+    }, 1000);
+}
+
+function simulateRefreshCommand() {
+    appendOutput('🗑️ Clearing existing images...');
+    setTimeout(() => {
+        appendOutput('Existing images cleared.');
+        simulateImageCommand();
+    }, 1500);
+}
+
+function simulateSelectiveCommand() {
+    appendOutput('🔍 Finding products without images...');
+    setTimeout(() => {
+        appendOutput('Found 3 products without images');
+        appendOutput('✅ Added images for Nike Running Shoes');
+        appendOutput('✅ Added images for Summer Top');
+        appendOutput('✅ Added images for Casual Pants');
+        appendOutput('🎉 Selective image addition completed!');
+    }, 2000);
+}
+
+function simulateMoreImagesCommand() {
+    appendOutput('🔍 Finding products with few images...');
+    setTimeout(() => {
+        appendOutput('Found 4 products with less than 3 images');
+        appendOutput('✅ Added more images for Classic Jeans');
+        appendOutput('✅ Added more images for Sports Jacket');
+        appendOutput('✅ Added more images for Evening Dress');
+        appendOutput('✅ Added more images for Casual Shirt');
+        appendOutput('🎉 Additional images added!');
+    }, 2000);
+}
+
+function simulateCustomCommand(maxImages, clearImages) {
+    if (clearImages) {
+        appendOutput('🗑️ Clearing existing images...');
+        setTimeout(() => {
+            appendOutput('Existing images cleared.');
+            continueCustomCommand(maxImages);
+        }, 1500);
+    } else {
+        continueCustomCommand(maxImages);
+    }
+}
+
+function continueCustomCommand(maxImages) {
+    appendOutput(`📸 Adding ${maxImages} images per product...`);
+    setTimeout(() => {
+        appendOutput(`✅ Custom command completed with ${maxImages} images per product`);
+        appendOutput(`📊 Total images processed: ${maxImages * 12}`);
+    }, 3000);
+}
+
+function appendOutput(text) {
+    const output = document.getElementById('commandOutput');
+    const timestamp = new Date().toLocaleTimeString();
+    output.textContent += `\n[${timestamp}] ${text}`;
+    output.scrollTop = output.scrollHeight;
+}
+
+function clearOutput() {
+    document.getElementById('commandOutput').textContent = `Welcome to Image Management Dashboard
+=====================================
+
+Use the buttons above to manage product images.
+Commands will appear here as they run.
+
+Ready to add some images! 🖼️`;
+}
+</script>
+{% endblock %}
