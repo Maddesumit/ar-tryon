@@ -53,16 +53,23 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('accessToken');
+      console.log('🔐 AuthContext: Checking authentication...');
+      console.log('🔑 Token found:', token ? `${token.substring(0, 20)}...` : 'No token');
+      
       if (token) {
         try {
+          console.log('📡 AuthContext: Making profile API call...');
           const response = await authAPI.getProfile();
+          console.log('✅ AuthContext: Profile response:', response.data);
           dispatch({ type: 'AUTH_SUCCESS', payload: response.data });
         } catch (error) {
+          console.error('❌ AuthContext: Profile API failed:', error);
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           dispatch({ type: 'AUTH_FAILURE', payload: 'Session expired' });
         }
       } else {
+        console.log('❌ AuthContext: No token found, user not authenticated');
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
@@ -71,20 +78,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (credentials) => {
+    console.log('AuthContext: Login attempt with credentials:', credentials);
     dispatch({ type: 'AUTH_START' });
     try {
+      console.log('AuthContext: Making API call to authAPI.login');
       const response = await authAPI.login(credentials);
-      const { access, refresh, user } = response.data;
+      console.log('AuthContext: Login API response:', response);
       
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
+      const { tokens, user } = response.data;
+      
+      localStorage.setItem('accessToken', tokens.access);
+      localStorage.setItem('refreshToken', tokens.refresh);
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user });
+      console.log('AuthContext: Login successful, user:', user);
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || 'Login failed';
+      console.error('AuthContext: Login error:', error);
+      console.error('AuthContext: Error response:', error.response);
+      const errorMessage = error.response?.data?.error || 'Login failed';
       dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
-      return { success: false, error: errorMessage };
+      throw error; // Re-throw to allow component error handling
     }
   };
 
@@ -92,23 +106,26 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'AUTH_START' });
     try {
       const response = await authAPI.register(userData);
-      const { access, refresh, user } = response.data;
+      const { tokens, user } = response.data;
       
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
+      localStorage.setItem('accessToken', tokens.access);
+      localStorage.setItem('refreshToken', tokens.refresh);
       
       dispatch({ type: 'AUTH_SUCCESS', payload: user });
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || 'Registration failed';
+      const errorMessage = error.response?.data?.error || 'Registration failed';
       dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
-      return { success: false, error: errorMessage };
+      throw error; // Re-throw to allow component error handling
     }
   };
 
   const logout = async () => {
     try {
-      await authAPI.logout();
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        await authAPI.logout({ refresh_token: refreshToken });
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

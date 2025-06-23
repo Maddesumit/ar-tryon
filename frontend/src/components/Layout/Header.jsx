@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import MiniCart from '../Cart/MiniCart';
 import { 
   Bars3Icon, 
   XMarkIcon, 
@@ -89,8 +90,17 @@ export default function Header() {
               )}
             </button>
 
+            {/* Cart */}
+            <MiniCart />
+
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
+                <Link
+                  to="/orders"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                >
+                  Orders
+                </Link>
                 <Link
                   to="/profile"
                   className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"

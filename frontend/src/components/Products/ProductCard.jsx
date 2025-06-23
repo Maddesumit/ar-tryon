@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { StarIcon, HeartIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
+import AddToCartButton from '../Cart/AddToCartButton';
 
 const ProductCard = ({ product }) => {
   const {
@@ -9,12 +10,13 @@ const ProductCard = ({ product }) => {
     slug,
     name,
     price,
+    sale_price,
     images = [],
     brand,
     category,
     average_rating = 0,
     review_count = 0,
-    ar_enabled = false
+    is_try_on_enabled = false
   } = product;
 
   // Get the first image or use a placeholder
@@ -75,7 +77,7 @@ const ProductCard = ({ product }) => {
         </Link>
         
         {/* AR Badge */}
-        {ar_enabled && (
+        {is_try_on_enabled && (
           <div className="absolute top-2 left-2 bg-purple-600 dark:bg-purple-700 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
             <EyeIcon className="h-3 w-3 mr-1" />
             AR
@@ -96,7 +98,7 @@ const ProductCard = ({ product }) => {
             >
               View Details
             </Link>
-            {ar_enabled && (
+            {is_try_on_enabled && (
               <Link
                 to={`/try-on?product=${id}`}
                 className="flex-1 bg-purple-600 dark:bg-purple-700 text-white px-3 py-2 rounded text-sm font-medium text-center hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors flex items-center justify-center"
@@ -140,14 +142,27 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
-        {/* Price */}
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900 dark:text-white">
-            {formatPrice(price)}
-          </span>
+        {/* Price and Actions */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col">
+            {sale_price ? (
+              <>
+                <span className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {formatPrice(sale_price)}
+                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                  {formatPrice(price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                {formatPrice(price)}
+              </span>
+            )}
+          </div>
           
           {/* AR Quick Try */}
-          {ar_enabled && (
+          {is_try_on_enabled && (
             <Link
               to={`/try-on?product=${id}`}
               className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium flex items-center"
@@ -157,6 +172,13 @@ const ProductCard = ({ product }) => {
             </Link>
           )}
         </div>
+
+        {/* Add to Cart Button */}
+        <AddToCartButton 
+          product={product} 
+          size="small"
+          className="w-full"
+        />
       </div>
     </div>
   );
