@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import ProductCard from '../components/Products/ProductCard';
-import { api } from '../services/api';
+import { productsAPI } from '../services/api';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -32,15 +32,15 @@ const Products = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
+      const params = {};
       
-      if (searchQuery) params.append('search', searchQuery);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedBrand) params.append('brand', selectedBrand);
-      if (sortBy) params.append('ordering', sortBy);
-      params.append('page', currentPage);
+      if (searchQuery) params.search = searchQuery;
+      if (selectedCategory) params.category = selectedCategory;
+      if (selectedBrand) params.brand = selectedBrand;
+      if (sortBy) params.ordering = sortBy;
+      params.page = currentPage;
 
-      const response = await api.get(`/catalog/products/?${params.toString()}`);
+      const response = await productsAPI.getProducts(params);
       const data = response.data;
       
       if (data.results) {
@@ -59,7 +59,7 @@ const Products = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/catalog/categories/');
+      const response = await productsAPI.getCategories();
       setCategories(response.data.results || response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -68,7 +68,7 @@ const Products = () => {
 
   const fetchBrands = async () => {
     try {
-      const response = await api.get('/catalog/brands/');
+      const response = await productsAPI.getBrands();
       setBrands(response.data.results || response.data);
     } catch (error) {
       console.error('Error fetching brands:', error);

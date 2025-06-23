@@ -9,7 +9,7 @@ const Login = () => {
   const { login } = useContext(AuthContext);
   
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -36,10 +36,8 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
     }
 
     if (!formData.password) {
@@ -59,11 +57,11 @@ const Login = () => {
 
     setLoading(true);
     try {
-      await login(formData.email, formData.password);
+      await login(formData);
       navigate(from, { replace: true });
     } catch (error) {
       setErrors({
-        submit: error.response?.data?.detail || 'Login failed. Please try again.'
+        submit: error.response?.data?.error || 'Login failed. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -96,25 +94,25 @@ const Login = () => {
           )}
 
           <div className="space-y-4">
-            {/* Email */}
+            {/* Username */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={formData.username}
                 onChange={handleChange}
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
+                  errors.username ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm`}
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
               )}
             </div>
 

@@ -63,27 +63,27 @@ class ProductReviewInline(admin.TabularInline):
     readonly_fields = ['created_at']
     
 class PriceRangeFilter(SimpleListFilter):
-    """Custom filter for product price ranges"""
+    """Custom filter for product price ranges in Indian Rupees"""
     title = 'Price Range'
     parameter_name = 'price_range'
     
     def lookups(self, request, model_admin):
         return (
-            ('0-50', '$0 - $50'),
-            ('50-100', '$50 - $100'),
-            ('100-200', '$100 - $200'),
-            ('200+', '$200+'),
+            ('0-2000', '₹0 - ₹2000'),
+            ('2000-5000', '₹2000 - ₹5000'),
+            ('5000-10000', '₹5000 - ₹10000'),
+            ('10000+', '₹10000+'),
         )
     
     def queryset(self, request, queryset):
-        if self.value() == '0-50':
-            return queryset.filter(price__lte=50)
-        if self.value() == '50-100':
-            return queryset.filter(price__gt=50, price__lte=100)
-        if self.value() == '100-200':
-            return queryset.filter(price__gt=100, price__lte=200)
-        if self.value() == '200+':
-            return queryset.filter(price__gt=200)
+        if self.value() == '0-2000':
+            return queryset.filter(price__lte=2000)
+        if self.value() == '2000-5000':
+            return queryset.filter(price__gt=2000, price__lte=5000)
+        if self.value() == '5000-10000':
+            return queryset.filter(price__gt=5000, price__lte=10000)
+        if self.value() == '10000+':
+            return queryset.filter(price__gt=10000)
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -143,13 +143,13 @@ class ProductAdmin(admin.ModelAdmin):
     image_thumbnail.short_description = 'Image'
     
     def current_price(self, obj):
-        """Display current price with sale indication"""
+        """Display current price with sale indication in Indian Rupees"""
         if obj.is_on_sale:
             return format_html(
-                '<span style="color: red; font-weight: bold;">${}</span> <small style="text-decoration: line-through;">${}</small>',
+                '<span style="color: red; font-weight: bold;">₹{}</span> <small style="text-decoration: line-through;">₹{}</small>',
                 obj.sale_price, obj.price
             )
-        return f'${obj.price}'
+        return f'₹{obj.price}'
     current_price.short_description = 'Price'
     
     def sale_badge(self, obj):

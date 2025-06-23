@@ -10,6 +10,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -38,12 +39,18 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    console.log('Validating form with data:', formData);
+
     if (!formData.firstName) {
       newErrors.firstName = 'First name is required';
     }
 
     if (!formData.lastName) {
       newErrors.lastName = 'Last name is required';
+    }
+
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
     }
 
     if (!formData.email) {
@@ -68,6 +75,7 @@ const Register = () => {
       newErrors.acceptTerms = 'You must accept the terms and conditions';
     }
 
+    console.log('Validation errors found:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,20 +83,39 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', formData);
+    alert('Form submission started!'); // Debug alert
+    
     if (!validateForm()) {
+      console.log('Validation failed with errors:', errors);
+      console.log('Current form data:', formData);
+      alert(`Validation failed! Errors: ${JSON.stringify(errors, null, 2)}`);
       return;
     }
 
     setLoading(true);
+    console.log('Attempting registration...');
+    alert('Validation passed, attempting registration...');
+    
     try {
-      await register({
+      const registrationData = {
+        username: formData.username,
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
-        password: formData.password
-      });
+        password: formData.password,
+        password2: formData.confirmPassword
+      };
+      
+      console.log('Registration data:', registrationData);
+      
+      await register(registrationData);
+      console.log('Registration successful, navigating to home...');
+      alert('Registration successful!');
       navigate('/');
     } catch (error) {
+      console.error('Registration error:', error);
+      alert('Registration failed! Check console for details.');
       if (error.response?.data) {
         const serverErrors = {};
         Object.keys(error.response.data).forEach(key => {
@@ -145,6 +172,17 @@ const Register = () => {
               {errors.submit}
             </div>
           )}
+          
+          {Object.keys(errors).length > 0 && !errors.submit && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+              Please fix the following errors:
+              <ul className="mt-2 list-disc list-inside">
+                {Object.entries(errors).map(([field, message]) => (
+                  <li key={field}>{message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="space-y-4">
             {/* Name Fields */}
@@ -190,6 +228,28 @@ const Register = () => {
                   <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
                 )}
               </div>
+            </div>
+
+            {/* Username */}
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={formData.username}
+                onChange={handleChange}
+                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
+                  errors.username ? 'border-red-300' : 'border-gray-300'
+                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm`}
+                placeholder="Enter your username"
+              />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+              )}
             </div>
 
             {/* Email */}
